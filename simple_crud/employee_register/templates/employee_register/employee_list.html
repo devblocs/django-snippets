@@ -1,0 +1,52 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} List Employees {% endblock title %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col m12">
+            {% if employees.count > 0 %}
+                <h2>Employees List</h2>
+            {% else %}
+                <h2>No Employees data created!</h2>
+                <p><a href="{% url 'create' %}">Click here </a> to create employee</p>
+            {% endif %}
+        </div>
+    </div>
+    {% if employees.count > 0 %}
+        <div class="row">
+            <div class="col m12">
+                    <table class="striped highlight responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Employee Code</th>
+                                <th>Position</th>
+                                <th>Contact No.</th>
+                                <th class="center-align" colspan="2">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for employee in employees %}
+                                <tr>
+                                    <td>{{ employee.fullname }}</td>
+                                    <td>{{ employee.emp_code }}</td>
+                                    <td>{{ employee.position }}</td>
+                                    <td>{{ employee.contact_no }}</td>
+                                    <td class="right-align"><a href="{% url 'edit' employee.id %}" class="waves-effect waves-light btn blue darken-2" title="Edit Employee"><i class="material-icons">edit</i></a> </td>
+                                    <td>
+                                        <form action="{% url 'delete' employee.id %}" method = "POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="waves-effect waves-light btn red darken-2" title="Delete Employee"><i class="material-icons">delete</i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}

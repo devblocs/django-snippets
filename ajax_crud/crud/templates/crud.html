@@ -1,0 +1,289 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Django Ajax CRUD{% endblock %}
+
+{% block content %}
+    <div class="row more-space">
+      <div class="col m6">
+        <div class="card">
+            <div class="card-content white-text">
+              <span class="card-title black-text center-align">ADD USER</span>
+              <form id="addUser">
+                <div class="row">
+                    <div class="input-field col m12">
+                      <input type="text" name="name">
+                      <label for="name">Full Name</label>
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="input-field col m12">
+                      <input type="text" name="address">
+                      <label for="address">Address</label>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="input-field col m12">
+                      <input type="number" name="age" min="10" max="100">
+                      <label for="age">Age</label>
+                  </div>
+                </div>
+            </div>
+            <div class="card-action">
+                <div class="row mb-0 center-align">
+                    <div class="col m6">
+                          <button class="waves-effect waves-light btn blue darken-1" type="submit">create user</button>
+                    </div>
+                    <div class="col m6">
+                        <button class="waves-effect waves-light btn red darken-1" type="reset">reset</button>
+                  </div>
+                </div>
+            </div>
+        </form>
+          </div>
+      </div>
+      <div class="col m6">
+        <h3>USERS LIST</h3>
+        <table id="userTable" class="table table-striped">
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Age</th>
+            <th colspan="2" class="center-align">Action</th>
+          </tr>
+          {% if users %}
+            {% for user in users %}
+            <tr id="user-{{user.id}}">
+                <td class="userName userData" name="name">{{user.name}}</td>
+                <td class="userAddress userData" name="address">{{user.address}}</td>
+                <td class="userAge userData" name="age">{{user.age}}</td>
+                <td>
+                    <button class="waves-effect waves-light btn blue darken-1" title="Edit user"onClick="editUser({{ user.id }})" data-toggle="modal" data-target="#edit_modal"><i class="material-icons">edit</i></button>
+                </td>
+                <td>
+                    <button class="waves-effect waves-light btn red darken-1" title="Delete user" onClick="deleteUser({{ user.id }})"><i class="material-icons">delete</i></button>
+                </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            No Users
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+  <!-- Modal Structure -->
+  <div id="edit_modal" class="modal">
+    <div class="modal-content">
+        <h4 class="center-align">Edit User</h4>
+        <form id="updateUser">
+            <input id="form-id" type="hidden" name="formId"/>
+            <div class="row">
+                <div class="input-field col m12">
+                    <input id="form-name" type="text" name="formName"/>
+                    <label for="formName">Full Name</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col m12">
+                    <input id="form-address" type="text" name="formAddress"/>
+                    <label for="formAddress">Address</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col m12">
+                    <input id="form-age" type="number" name="formAge" min=10 max=100/>
+                    <label for="formAge">Age</label>
+                </div>
+            </div>
+    </div>
+    <div class="modal-footer">
+        <div class="row center-align">
+            <div class="col m6">
+                  <button class="waves-effect waves-light btn blue darken-1" id="update_user" type="button">update user</button>
+            </div>
+            <div class="col m6">
+                <button class="waves-effect waves-light btn red darken-1 close-modal" data-dismiss="modal" type="button">Close</button>
+          </div>
+        </div>
+        </form>
+    </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="delete_modal" class="modal">
+    <div class="modal-content">
+        <h4>Delete User!</h4>
+        <p>Are you sure you want to delete user?</p>
+    </div>
+    <div class="modal-footer">
+        <div class="row">
+            <div class="col m6 right-align">
+                  <button class="waves-effect waves-light btn blue darken-1" id="delete_user" type="button">Delete user</button>
+            </div>
+            <div class="col m6 left-align">
+                <button class="waves-effect waves-light btn red darken-1 close-modal" data-dismiss="modal" type="button">Close</button>
+          </div>
+        </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            $("form#addUser").submit(function() {
+                var nameInput = $('input[name="name"]').val().trim();
+                var addressInput = $('input[name="address"]').val().trim();
+                var ageInput = $('input[name="age"]').val().trim();
+                if (nameInput && addressInput && ageInput) {
+                    // Create Ajax Call
+                    $.ajax({
+                        url: '{% url "create" %}',
+                        type: 'POST',
+                        dataType: 'JSON',
+                        data: {
+                            'name': nameInput,
+                            'address': addressInput,
+                            'age': ageInput,
+                            'csrfmiddlewaretoken' : "{{ csrf_token }}"
+                        },
+                        success: function (data) {
+                            if (data.user) {
+                                appendToUsrTable(data.user);
+                                M.toast({html: 'User added successfully!'})
+                            }
+                        }
+                    });
+                } else {
+                    alert("All fields must have a valid value.");
+                }
+                $('form#addUser').trigger("reset");
+                return false;
+            });
+
+            // Create Django Ajax Call
+            $("#update_user").click(function(e) {
+                e.preventDefault();
+
+                var idInput = $('input[name="formId"]').val().trim();
+                var nameInput = $('input[name="formName"]').val().trim();
+                var addressInput = $('input[name="formAddress"]').val().trim();
+                var ageInput = $('input[name="formAge"]').val().trim();
+
+                console.log(nameInput);
+
+                if (nameInput && addressInput && ageInput) {
+                    // Create Ajax Call
+                    $.ajax({
+                        url: '{% url "update" %}',
+                        type: 'POST',
+                        dataType: 'JSON',
+                        data: {
+                            'id': idInput,
+                            'name': nameInput,
+                            'address': addressInput,
+                            'age': ageInput,
+                            'csrfmiddlewaretoken' : "{{ csrf_token }}"
+                        },
+                        success: function (data) {
+                            if (data.user) {
+                                $("#edit_modal").modal('close');
+                                updateToUserTabel(data.user);
+                                M.toast({html: 'User details updated successfully!'})
+                            }
+                        }
+                    });
+                } else {
+                    alert("All fields must have a valid value.");
+                }
+                $('form#updateUser').trigger("reset");
+                return false;
+            });
+
+            $("#delete_user").click(function(e){
+                e.preventDefault();
+                let id = parseInt($(this).attr('data-id'));
+                $.ajax({
+                    url: '{% url "delete" %}',
+                    type: 'POST',
+                    type: 'POST',
+                    data: {
+                        'id': id,
+                        'csrfmiddlewaretoken' : "{{ csrf_token }}"
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.deleted) {
+                            $("#userTable #user-" + id).remove();
+                            $("#delete_modal").modal('close');
+
+                            M.toast({html: 'User deleted successfully!'})
+                        }
+                    }
+                });
+            });
+
+            $('.close-modal').click(function(e){
+                e.preventDefault();
+
+                $('.modal').modal('close');
+            })
+        });
+
+        function appendToUsrTable(user) {
+            $("#userTable > tbody:last-child").append(`
+                <tr id="user-${user.id}">
+                    <td class="userName" name="name">${user.name}</td>
+                    '<td class="userAddress" name="address">${user.address}</td>
+                    '<td class="userAge" name="age">${user.age}</td>
+                    <td>
+                        <button class="waves-effect waves-light btn blue darken-1" title="Edit user"onClick="editUser(${user.id})" data-toggle="modal" data-target="#edit_modal"><i class="material-icons">edit</i></button>
+                    </td>
+                    <td>
+                        <button class="waves-effect waves-light btn red darken-1" title="Delete user" onClick="deleteUser(${user.id})"><i class="material-icons">delete</i></button>
+                    </td>
+                </tr>
+            `);
+        }
+
+        // Update Django Ajax Call
+        function editUser(id) {
+            $("#edit_modal").modal('open');
+            
+            if (id) {
+                tr_id = "#user-" + id;
+                name = $(tr_id).find(".userName").text();
+                address = $(tr_id).find(".userAddress").text();
+                age = $(tr_id).find(".userAge").text();
+                $('#form-id').val(id);
+                $('#form-name').val(name);
+                $('#form-address').val(address);
+                $('#form-age').val(age);
+            }
+        }
+
+        function updateToUserTabel(user){
+            $("#userTable #user-" + user.id).children(".userData").each(function() {
+                var attr = $(this).attr("name");
+                if (attr == "name") {
+                $(this).text(user.name);
+                } else if (attr == "address") {
+                $(this).text(user.address);
+                } else {
+                $(this).text(user.age);
+                }
+            });
+        }
+
+        // Delete Django Ajax Call
+        function deleteUser(id) {
+            $("#delete_modal").modal('open');
+
+            $("#delete_user").attr('data-id', id);
+        }
+    </script>
+{% endblock %}

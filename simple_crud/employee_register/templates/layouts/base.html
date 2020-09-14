@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee | {% block title %} {% endblock title %}</title>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="blue darken-3">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="{% url 'index' %}" class="brand-logo">CRUD</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                {% with current_url=request.resolver_match.url_name %}
+                    <li {% if current_url == 'index' %} class="active" {% endif %}><a href="{% url 'index' %}">Home</a></li>
+                    <li {% if current_url == 'create' %} class="active" {% endif %}><a href="{% url 'create' %}">Create Employee</a></li>
+                {% endwith %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">{% block content %} {% endblock content %}</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+          $(document).ready(function(){
+                $('select').formSelect();
+
+                {% block document_script %}{% endblock document_script %}
+            });
+    </script>
+  </body>
+</html>

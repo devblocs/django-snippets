@@ -1,0 +1,56 @@
+{% extends 'layouts/base.html' %}
+{% load materializecss %}
+
+{% block title %}
+    {% if request.resolver_match.url_name == 'edit' %}
+        Edit Empliyee
+    {% else %}
+        Create Employee 
+    {% endif %}
+{% endblock title %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col m12">
+            <h2>Create Employee</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col m12">
+            <form action="" method="post" autocomplete="off">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col m6">
+                        {{ form.fullname|materializecss }}
+                    </div>
+                    <div class="col m6">
+                        {{ form.contact_no|materializecss }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col m6">
+                        {{ form.emp_code|materializecss }}
+                    </div>
+                    <div class="col m6">
+                        {{ form.position|materializecss }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col m6 right-align">
+                           {% if request.resolver_match.url_name == 'edit' %}
+                                 <button class="btn waves-effect blue darken-3" type="submit" name="update">Update user <i class="material-icons left">edit</i>
+                            {% else %}
+                                <button class="btn waves-effect blue darken-3" type="submit" name="resiter">Register user <i class="material-icons left">person_add</i>
+                            {% endif %}
+                        </button>
+                    </div>
+                    <div class="col m6">
+                        <button class="btn waves-effect waves-light red lighten-1" type="reset" name="reset">Reset <i class="material-icons left">refresh</i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
